@@ -2,12 +2,21 @@
 <html lang="km">
 
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  >
 
   <title>Admin Dashboard Registration</title>
 
-  <link rel="stylesheet" href="style.css">
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
+
 </head>
 
 <body>
@@ -18,11 +27,17 @@
        LOGIN
   =========================== -->
 
-  <section id="loginCard" class="card login">
+  <section
+    id="loginCard"
+    class="card login"
+  >
 
     <h1>Admin Login</h1>
 
-    <div id="loginError" class="alert hidden"></div>
+    <div
+      id="loginError"
+      class="alert hidden"
+    ></div>
 
     <input
       id="email"
@@ -47,16 +62,27 @@
        DASHBOARD
   =========================== -->
 
-  <section id="dashboard" class="hidden">
+  <section
+    id="dashboard"
+    class="hidden"
+  >
 
     <header class="top">
 
       <div>
-        <h1>Admin Dashboard</h1>
+
+        <h1>
+          Admin Dashboard
+        </h1>
+
         <p id="userEmail"></p>
+
       </div>
 
-      <button id="logoutBtn" class="danger">
+      <button
+        id="logoutBtn"
+        class="danger"
+      >
         Logout
       </button>
 
@@ -64,36 +90,67 @@
 
 
     <!-- ==========================
-         STATS
+         STATISTICS
     =========================== -->
 
     <div class="stats">
 
       <div class="stat">
-        <span>សរុប</span>
-        <b id="total">0</b>
+
+        <span>
+          សរុប
+        </span>
+
+        <b id="total">
+          0
+        </b>
+
       </div>
 
-      <div class="stat">
-        <span>Pending</span>
-        <b id="pending">0</b>
-      </div>
 
       <div class="stat">
-        <span>Approved</span>
-        <b id="approved">0</b>
+
+        <span>
+          Pending
+        </span>
+
+        <b id="pending">
+          0
+        </b>
+
       </div>
 
+
       <div class="stat">
-        <span>Rejected</span>
-        <b id="rejected">0</b>
+
+        <span>
+          Approved
+        </span>
+
+        <b id="approved">
+          0
+        </b>
+
+      </div>
+
+
+      <div class="stat">
+
+        <span>
+          Rejected
+        </span>
+
+        <b id="rejected">
+          0
+        </b>
+
       </div>
 
     </div>
 
 
     <!-- ==========================
-         REGISTRATION TABLE
+         REGISTRATIONS
     =========================== -->
 
     <section class="card">
@@ -104,6 +161,7 @@
           id="search"
           placeholder="ស្វែងរក ឈ្មោះ / លេខ / សាលា"
         >
+
 
         <select id="filterStatus">
 
@@ -125,12 +183,19 @@
 
         </select>
 
+
         <button id="refreshBtn">
           Refresh
         </button>
 
+
         <button id="exportBtn">
           Export CSV
+        </button>
+
+
+        <button id="exportExcelBtn">
+          Export Excel
         </button>
 
       </div>
@@ -144,34 +209,58 @@
 
             <tr>
 
-              <th>លេខ</th>
+              <th>
+                លេខ
+              </th>
 
-              <th>ឈ្មោះខ្មែរ</th>
+              <th>
+                ឈ្មោះខ្មែរ
+              </th>
 
-              <!-- NEW -->
-              <th>ឈ្មោះឡាតាំង</th>
+              <th>
+                ឈ្មោះឡាតាំង
+              </th>
 
-              <th>ភេទ</th>
+              <th>
+                ភេទ
+              </th>
 
-              <th>ថ្នាក់</th>
+              <th>
+                ថ្នាក់
+              </th>
 
-              <th>សាលា</th>
+              <th>
+                សាលា
+              </th>
 
-              <th>ខេត្ត</th>
+              <th>
+                ខេត្ត
+              </th>
 
-              <th>Payment</th>
+              <th>
+                Payment
+              </th>
 
-              <th>Status</th>
+              <th>
+                Status
+              </th>
 
-              <th>កាលបរិច្ឆេទ</th>
+              <th>
+                កាលបរិច្ឆេទ
+              </th>
 
-              <th>Action</th>
+              <th>
+                Action
+              </th>
 
             </tr>
 
           </thead>
 
-          <tbody id="tbody"></tbody>
+
+          <tbody id="tbody">
+
+          </tbody>
 
         </table>
 
@@ -188,17 +277,23 @@
      RECEIPT MODAL
 =========================== -->
 
-<div id="modal" class="modal hidden">
+<div
+  id="modal"
+  class="modal hidden"
+>
 
   <div class="modalBox">
 
     <button
       class="close"
-      id="closeModal">
+      id="closeModal"
+    >
       ×
     </button>
 
-    <div id="modalContent"></div>
+    <div
+      id="modalContent"
+    ></div>
 
   </div>
 
@@ -211,7 +306,24 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+
+<!-- ==========================
+     SHEETJS / EXCEL
+=========================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+
+<!-- ==========================
+     CONFIG
+=========================== -->
+
 <script src="config.js"></script>
+
+
+<!-- ==========================
+     ADMIN JS
+=========================== -->
 
 <script src="admin.js"></script>
 
