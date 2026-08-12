@@ -7,61 +7,158 @@ const supabaseClient = createClient(
 
 let allRows = [];
 
-const $ = id => document.getElementById(id);
 
-function err(msg) {
-  $("loginError").textContent = msg;
-  $("loginError").classList.remove("hidden");
-}
+// ==============================
+// HELPER
+// ==============================
 
-async function init() {
-  const {
-    data: { session }
-  } = await supabaseClient.auth.getSession();
-
-  if (session) showDashboard(session.user);
-}
-
-function showDashboard(user) {
-  $("loginCard").classList.add("hidden");
-  $("dashboard").classList.remove("hidden");
-  $("userEmail").textContent = user.email || "";
-  loadRows();
-}
-
-$("loginBtn").onclick = async () => {
-  try {
-    const {
-      data,
-      error
-    } = await supabaseClient.auth.signInWithPassword({
-      email: $("email").value.trim(),
-      password: $("password").value
-    });
-
-    if (error) throw error;
-
-    showDashboard(data.user);
-
-  } catch (e) {
-    err(e.message);
-  }
-};
-
-$("logoutBtn").onclick = async () => {
-  await supabaseClient.auth.signOut();
-  location.reload();
-};
-
-$("refreshBtn").onclick = loadRows;
-
-$("search").oninput = render;
-
-$("filterStatus").onchange = render;
+const $ = id =>
+  document.getElementById(id);
 
 
 // ==============================
-// LOAD REGISTRATIONS
+// LOGIN ERROR
+// ==============================
+
+function err(msg) {
+
+  $("loginError").textContent = msg;
+
+  $("loginError")
+    .classList
+    .remove("hidden");
+}
+
+
+// ==============================
+// INITIALIZE
+// ==============================
+
+async function init() {
+
+  const {
+    data: {
+      session
+    }
+  } = await supabaseClient.auth.getSession();
+
+  if (session) {
+
+    showDashboard(
+      session.user
+    );
+
+  }
+
+}
+
+
+// ==============================
+// SHOW DASHBOARD
+// ==============================
+
+function showDashboard(user) {
+
+  $("loginCard")
+    .classList
+    .add("hidden");
+
+  $("dashboard")
+    .classList
+    .remove("hidden");
+
+  $("userEmail").textContent =
+    user.email || "";
+
+  loadRows();
+
+}
+
+
+// ==============================
+// LOGIN
+// ==============================
+
+$("loginBtn").onclick =
+  async () => {
+
+    try {
+
+      const {
+        data,
+        error
+      } =
+        await supabaseClient.auth
+          .signInWithPassword({
+
+            email:
+              $("email")
+                .value
+                .trim(),
+
+            password:
+              $("password")
+                .value
+
+          });
+
+
+      if (error) {
+
+        throw error;
+
+      }
+
+
+      showDashboard(
+        data.user
+      );
+
+
+    } catch (e) {
+
+      err(
+        e.message
+      );
+
+    }
+
+  };
+
+
+// ==============================
+// LOGOUT
+// ==============================
+
+$("logoutBtn").onclick =
+  async () => {
+
+    await supabaseClient.auth
+      .signOut();
+
+    location.reload();
+
+  };
+
+
+// ==============================
+// BUTTON EVENTS
+// ==============================
+
+$("refreshBtn").onclick =
+  loadRows;
+
+
+$("search").oninput =
+  render;
+
+
+$("filterStatus").onchange =
+  render;
+
+
+// ==============================
+// LOAD DATA
 // ==============================
 
 async function loadRows() {
@@ -69,28 +166,42 @@ async function loadRows() {
   const {
     data,
     error
-  } = await supabaseClient
-    .from("registrations")
-    .select("*")
-    .order("submitted_at", {
-      ascending: false
-    });
+  } =
+    await supabaseClient
+      .from("registrations")
+      .select("*")
+      .order(
+        "submitted_at",
+        {
+          ascending: false
+        }
+      );
+
 
   if (error) {
+
     console.error(error);
-    return alert(error.message);
+
+    return alert(
+      error.message
+    );
+
   }
 
-  allRows = data || [];
+
+  allRows =
+    data || [];
+
 
   updateStats();
 
   render();
+
 }
 
 
 // ==============================
-// UPDATE STATS
+// UPDATE STATISTICS
 // ==============================
 
 function updateStats() {
@@ -98,20 +209,30 @@ function updateStats() {
   $("total").textContent =
     allRows.length;
 
+
   $("pending").textContent =
     allRows.filter(
-      x => x.registration_status === "pending"
+      x =>
+        x.registration_status ===
+        "pending"
     ).length;
+
 
   $("approved").textContent =
     allRows.filter(
-      x => x.registration_status === "approved"
+      x =>
+        x.registration_status ===
+        "approved"
     ).length;
+
 
   $("rejected").textContent =
     allRows.filter(
-      x => x.registration_status === "rejected"
+      x =>
+        x.registration_status ===
+        "rejected"
     ).length;
+
 }
 
 
@@ -122,107 +243,183 @@ function updateStats() {
 function render() {
 
   const q =
-    $("search").value
+    $("search")
+      .value
       .toLowerCase()
       .trim();
 
+
   const f =
-    $("filterStatus").value;
+    $("filterStatus")
+      .value;
 
-  const rows = allRows.filter(x => {
 
-    const searchText = [
-      x.registration_number,
-      x.full_name,
+  const rows =
+    allRows.filter(x => {
 
-      // NEW: LATIN NAME
-      x.latin_name,
+      const searchText = [
 
-      x.school_name,
-      x.province
-    ]
-      .join(" ")
-      .toLowerCase();
+        x.registration_number,
 
-    return (
-      (!f || x.registration_status === f) &&
-      (!q || searchText.includes(q))
-    );
-  });
+        x.full_name,
+
+        // LATIN NAME
+        x.latin_name,
+
+        x.school_name,
+
+        x.province
+
+      ]
+        .join(" ")
+        .toLowerCase();
+
+
+      return (
+
+        (!f ||
+          x.registration_status === f)
+
+        &&
+
+        (!q ||
+          searchText.includes(q))
+
+      );
+
+    });
+
 
   $("tbody").innerHTML =
-    rows.map(x => `
-      <tr>
+    rows
+      .map(x => `
 
-        <td>
-          ${escapeHtml(x.registration_number)}
-        </td>
+        <tr>
 
-        <td>
-          ${escapeHtml(x.full_name)}
-        </td>
+          <td>
+            ${escapeHtml(
+              x.registration_number
+            )}
+          </td>
 
-        <!-- NEW: LATIN NAME -->
-        <td>
-          ${escapeHtml(x.latin_name || "")}
-        </td>
 
-        <td>
-          ${escapeHtml(x.gender)}
-        </td>
+          <td>
+            ${escapeHtml(
+              x.full_name
+            )}
+          </td>
 
-        <td>
-          ${escapeHtml(x.grade)}
-        </td>
 
-        <td>
-          ${escapeHtml(x.school_name)}
-        </td>
+          <td>
+            ${escapeHtml(
+              x.latin_name || ""
+            )}
+          </td>
 
-        <td>
-          ${escapeHtml(x.province)}
-        </td>
 
-        <td>
-          <span class="badge ${x.payment_status}">
-            ${x.payment_status}
-          </span>
-        </td>
+          <td>
+            ${escapeHtml(
+              x.gender
+            )}
+          </td>
 
-        <td>
-          <span class="badge ${x.registration_status}">
-            ${x.registration_status}
-          </span>
-        </td>
 
-        <td>
-          ${new Date(x.submitted_at).toLocaleString("km-KH")}
-        </td>
+          <td>
+            ${escapeHtml(
+              x.grade
+            )}
+          </td>
 
-        <td>
 
-          <button
-            class="action view"
-            onclick="viewReceipt('${x.id}')">
-            មើល
-          </button>
+          <td>
+            ${escapeHtml(
+              x.school_name
+            )}
+          </td>
 
-          <button
-            class="action approve"
-            onclick="setStatus('${x.id}','approved')">
-            Approve
-          </button>
 
-          <button
-            class="action reject"
-            onclick="setStatus('${x.id}','rejected')">
-            Reject
-          </button>
+          <td>
+            ${escapeHtml(
+              x.province
+            )}
+          </td>
 
-        </td>
 
-      </tr>
-    `).join("");
+          <td>
+
+            <span
+              class="badge ${x.payment_status}"
+            >
+
+              ${escapeHtml(
+                x.payment_status
+              )}
+
+            </span>
+
+          </td>
+
+
+          <td>
+
+            <span
+              class="badge ${x.registration_status}"
+            >
+
+              ${escapeHtml(
+                x.registration_status
+              )}
+
+            </span>
+
+          </td>
+
+
+          <td>
+            ${
+              x.submitted_at
+                ? new Date(
+                    x.submitted_at
+                  ).toLocaleString(
+                    "km-KH"
+                  )
+                : ""
+            }
+          </td>
+
+
+          <td>
+
+            <button
+              class="action view"
+              onclick="viewReceipt('${x.id}')"
+            >
+              មើល
+            </button>
+
+
+            <button
+              class="action approve"
+              onclick="setStatus('${x.id}','approved')"
+            >
+              Approve
+            </button>
+
+
+            <button
+              class="action reject"
+              onclick="setStatus('${x.id}','rejected')"
+            >
+              Reject
+            </button>
+
+          </td>
+
+        </tr>
+
+      `)
+      .join("");
+
 }
 
 
@@ -232,16 +429,20 @@ function render() {
 
 function escapeHtml(v = "") {
 
-  return String(v).replace(
-    /[&<>"']/g,
-    m => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#039;"
-    }[m])
-  );
+  return String(v)
+    .replace(
+      /[&<>"']/g,
+      m => ({
+
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+
+      }[m])
+    );
+
 }
 
 
@@ -249,112 +450,229 @@ function escapeHtml(v = "") {
 // APPROVE / REJECT
 // ==============================
 
-window.setStatus = async (id, status) => {
+window.setStatus =
+  async (
+    id,
+    status
+  ) => {
 
-  const row =
-    allRows.find(x => x.id === id);
+    const row =
+      allRows.find(
+        x => x.id === id
+      );
 
-  if (!row) return;
 
-  const {
-    error
-  } = await supabaseClient
-    .from("registrations")
-    .update({
-      registration_status: status,
+    if (!row) {
 
-      payment_status:
-        status === "approved"
-          ? "approved"
-          : status === "rejected"
-            ? "rejected"
-            : row.payment_status
-    })
-    .eq("id", id);
+      return;
 
-  if (error) {
-    return alert(error.message);
-  }
+    }
 
-  await loadRows();
-};
+
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("registrations")
+        .update({
+
+          registration_status:
+            status,
+
+          payment_status:
+
+            status === "approved"
+
+              ? "approved"
+
+              : status === "rejected"
+
+                ? "rejected"
+
+                : row.payment_status
+
+        })
+        .eq(
+          "id",
+          id
+        );
+
+
+    if (error) {
+
+      return alert(
+        error.message
+      );
+
+    }
+
+
+    await loadRows();
+
+  };
 
 
 // ==============================
 // VIEW RECEIPT
 // ==============================
 
-window.viewReceipt = async (id) => {
+window.viewReceipt =
+  async id => {
 
-  const row =
-    allRows.find(x => x.id === id);
+    const row =
+      allRows.find(
+        x => x.id === id
+      );
 
-  if (!row) return;
 
-  const {
-    data,
-    error
-  } = await supabaseClient.storage
-    .from("receipts")
-    .createSignedUrl(
-      row.receipt_path,
-      600
-    );
+    if (!row) {
 
-  if (error) {
-    return alert(error.message);
-  }
+      return;
 
-  const isPdf =
-    row.receipt_path
-      .toLowerCase()
-      .endsWith(".pdf");
-
-  $("modalContent").innerHTML = `
-
-    <h2>
-      ${escapeHtml(row.full_name)}
-    </h2>
-
-    <!-- NEW: LATIN NAME -->
-    <p>
-      ឈ្មោះឡាតាំង:
-      ${escapeHtml(row.latin_name || "")}
-    </p>
-
-    <p>
-      លេខ:
-      ${escapeHtml(row.registration_number)}
-    </p>
-
-    <p>
-      សាលា:
-      ${escapeHtml(row.school_name)}
-    </p>
-
-    ${
-      isPdf
-        ? `
-          <p>
-            <a
-              href="${data.signedUrl}"
-              target="_blank">
-              បើក PDF វិក្កយបត្រ
-            </a>
-          </p>
-        `
-        : `
-          <img
-            class="receipt"
-            src="${data.signedUrl}"
-            alt="Receipt">
-        `
     }
 
-  `;
 
-  $("modal").classList.remove("hidden");
-};
+    const {
+      data,
+      error
+    } =
+      await supabaseClient.storage
+        .from("receipts")
+        .createSignedUrl(
+          row.receipt_path,
+          600
+        );
+
+
+    if (error) {
+
+      return alert(
+        error.message
+      );
+
+    }
+
+
+    const isPdf =
+      row.receipt_path
+        .toLowerCase()
+        .endsWith(".pdf");
+
+
+    $("modalContent")
+      .innerHTML = `
+
+        <h2>
+          ${escapeHtml(
+            row.full_name
+          )}
+        </h2>
+
+
+        <p>
+          <strong>
+            ឈ្មោះឡាតាំង:
+          </strong>
+
+          ${escapeHtml(
+            row.latin_name || ""
+          )}
+        </p>
+
+
+        <p>
+          <strong>
+            លេខ:
+          </strong>
+
+          ${escapeHtml(
+            row.registration_number
+          )}
+        </p>
+
+
+        <p>
+          <strong>
+            ភេទ:
+          </strong>
+
+          ${escapeHtml(
+            row.gender
+          )}
+        </p>
+
+
+        <p>
+          <strong>
+            ថ្នាក់:
+          </strong>
+
+          ${escapeHtml(
+            row.grade
+          )}
+        </p>
+
+
+        <p>
+          <strong>
+            សាលា:
+          </strong>
+
+          ${escapeHtml(
+            row.school_name
+          )}
+        </p>
+
+
+        <p>
+          <strong>
+            ខេត្ត:
+          </strong>
+
+          ${escapeHtml(
+            row.province
+          )}
+        </p>
+
+
+        ${
+          isPdf
+
+            ? `
+
+              <p>
+
+                <a
+                  href="${data.signedUrl}"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  បើក PDF វិក្កយបត្រ
+                </a>
+
+              </p>
+
+            `
+
+            : `
+
+              <img
+                class="receipt"
+                src="${data.signedUrl}"
+                alt="Receipt"
+              >
+
+            `
+        }
+
+      `;
+
+
+    $("modal")
+      .classList
+      .remove("hidden");
+
+  };
 
 
 // ==============================
@@ -362,74 +680,241 @@ window.viewReceipt = async (id) => {
 // ==============================
 
 $("closeModal").onclick =
-  () => $("modal").classList.add("hidden");
+  () =>
+    $("modal")
+      .classList
+      .add("hidden");
 
 
 // ==============================
 // EXPORT CSV
 // ==============================
 
-$("exportBtn").onclick = () => {
+$("exportBtn").onclick =
+  () => {
 
-  const headers = [
-    "registration_number",
+    if (!allRows.length) {
 
-    "full_name",
+      return alert(
+        "មិនមានទិន្នន័យសម្រាប់ Export ទេ។"
+      );
 
-    // NEW: LATIN NAME
-    "latin_name",
+    }
 
-    "gender",
 
-    "grade",
+    const headers = [
 
-    "school_name",
+      "registration_number",
 
-    "province",
+      "full_name",
 
-    "payment_status",
+      "latin_name",
 
-    "registration_status",
+      "gender",
 
-    "submitted_at"
-  ];
+      "grade",
 
-  const csv = [
-    headers.join(","),
+      "school_name",
 
-    ...allRows.map(r =>
-      headers
-        .map(h =>
-          `"${String(
-            r[h] ?? ""
-          ).replaceAll('"', '""')}"`
-        )
-        .join(",")
-    )
+      "province",
 
-  ].join("\n");
+      "payment_status",
 
-  const blob =
-    new Blob(
-      ["\ufeff" + csv],
-      {
-        type: "text/csv;charset=utf-8"
-      }
+      "registration_status",
+
+      "submitted_at"
+
+    ];
+
+
+    const csv = [
+
+      headers.join(","),
+
+      ...allRows.map(r =>
+
+        headers
+          .map(h =>
+            `"${String(
+              r[h] ?? ""
+            ).replaceAll(
+              '"',
+              '""'
+            )}"`
+          )
+          .join(",")
+
+      )
+
+    ].join("\n");
+
+
+    const blob =
+      new Blob(
+        [
+          "\ufeff" +
+          csv
+        ],
+        {
+          type:
+            "text/csv;charset=utf-8"
+        }
+      );
+
+
+    const a =
+      document.createElement(
+        "a"
+      );
+
+
+    a.href =
+      URL.createObjectURL(
+        blob
+      );
+
+
+    a.download =
+      "registrations.csv";
+
+
+    a.click();
+
+
+    URL.revokeObjectURL(
+      a.href
     );
 
-  const a =
-    document.createElement("a");
+  };
 
-  a.href =
-    URL.createObjectURL(blob);
 
-  a.download =
-    "registrations.csv";
+// ==============================
+// EXPORT EXCEL
+// ==============================
 
-  a.click();
+$("exportExcelBtn").onclick =
+  () => {
 
-  URL.revokeObjectURL(a.href);
-};
+    if (!allRows.length) {
+
+      return alert(
+        "មិនមានទិន្នន័យសម្រាប់ Export ទេ។"
+      );
+
+    }
+
+
+    const data =
+      allRows.map(r => ({
+
+        "លេខចុះឈ្មោះ":
+          r.registration_number || "",
+
+        "ឈ្មោះជាខ្មែរ":
+          r.full_name || "",
+
+        "ឈ្មោះជាឡាតាំង":
+          r.latin_name || "",
+
+        "ភេទ":
+          r.gender || "",
+
+        "ថ្នាក់":
+          r.grade || "",
+
+        "ឈ្មោះសាលា":
+          r.school_name || "",
+
+        "រាជធានី/ខេត្ត":
+          r.province || "",
+
+        "ការបង់ប្រាក់":
+          r.payment_status || "",
+
+        "ស្ថានភាព":
+          r.registration_status || "",
+
+        "កាលបរិច្ឆេទ":
+          r.submitted_at
+            ? new Date(
+                r.submitted_at
+              ).toLocaleString(
+                "km-KH"
+              )
+            : ""
+
+      }));
+
+
+    const worksheet =
+      XLSX.utils.json_to_sheet(
+        data
+      );
+
+
+    // Column widths
+    worksheet["!cols"] = [
+
+      {
+        wch: 22
+      },
+
+      {
+        wch: 25
+      },
+
+      {
+        wch: 25
+      },
+
+      {
+        wch: 12
+      },
+
+      {
+        wch: 12
+      },
+
+      {
+        wch: 30
+      },
+
+      {
+        wch: 20
+      },
+
+      {
+        wch: 18
+      },
+
+      {
+        wch: 20
+      },
+
+      {
+        wch: 25
+      }
+
+    ];
+
+
+    const workbook =
+      XLSX.utils.book_new();
+
+
+    XLSX.utils.book_append_sheet(
+      workbook,
+      worksheet,
+      "Registrations"
+    );
+
+
+    XLSX.writeFile(
+      workbook,
+      "registrations.xlsx"
+    );
+
+  };
 
 
 // ==============================
