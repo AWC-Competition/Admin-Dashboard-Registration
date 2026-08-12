@@ -1,37 +1,220 @@
 <!doctype html>
 <html lang="km">
+
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Admin Dashboard Registration</title><link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <title>Admin Dashboard Registration</title>
+
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
+
 <div class="container">
+
+  <!-- ==========================
+       LOGIN
+  =========================== -->
+
   <section id="loginCard" class="card login">
-    <h1>Admin Login</h1><div id="loginError" class="alert hidden"></div>
-    <input id="email" type="email" placeholder="Admin Email">
-    <input id="password" type="password" placeholder="Password">
-    <button id="loginBtn">Login</button>
+
+    <h1>Admin Login</h1>
+
+    <div id="loginError" class="alert hidden"></div>
+
+    <input
+      id="email"
+      type="email"
+      placeholder="Admin Email"
+    >
+
+    <input
+      id="password"
+      type="password"
+      placeholder="Password"
+    >
+
+    <button id="loginBtn">
+      Login
+    </button>
+
   </section>
 
+
+  <!-- ==========================
+       DASHBOARD
+  =========================== -->
+
   <section id="dashboard" class="hidden">
-    <header class="top"><div><h1>Admin Dashboard</h1><p id="userEmail"></p></div><button id="logoutBtn" class="danger">Logout</button></header>
-    <div class="stats">
-      <div class="stat"><span>សរុប</span><b id="total">0</b></div>
-      <div class="stat"><span>Pending</span><b id="pending">0</b></div>
-      <div class="stat"><span>Approved</span><b id="approved">0</b></div>
-      <div class="stat"><span>Rejected</span><b id="rejected">0</b></div>
-    </div>
-    <section class="card">
-      <div class="toolbar">
-        <input id="search" placeholder="ស្វែងរក ឈ្មោះ / លេខ / សាលា">
-        <select id="filterStatus"><option value="">គ្រប់ស្ថានភាព</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select>
-        <button id="refreshBtn">Refresh</button><button id="exportBtn">Export CSV</button>
+
+    <header class="top">
+
+      <div>
+        <h1>Admin Dashboard</h1>
+        <p id="userEmail"></p>
       </div>
-      <div class="tableWrap"><table><thead><tr><th>លេខ</th><th>ឈ្មោះ</th><th>ភេទ</th><th>ថ្នាក់</th><th>សាលា</th><th>ខេត្ត</th><th>Payment</th><th>Status</th><th>កាលបរិច្ឆេទ</th><th>Action</th></tr></thead><tbody id="tbody"></tbody></table></div>
+
+      <button id="logoutBtn" class="danger">
+        Logout
+      </button>
+
+    </header>
+
+
+    <!-- ==========================
+         STATS
+    =========================== -->
+
+    <div class="stats">
+
+      <div class="stat">
+        <span>សរុប</span>
+        <b id="total">0</b>
+      </div>
+
+      <div class="stat">
+        <span>Pending</span>
+        <b id="pending">0</b>
+      </div>
+
+      <div class="stat">
+        <span>Approved</span>
+        <b id="approved">0</b>
+      </div>
+
+      <div class="stat">
+        <span>Rejected</span>
+        <b id="rejected">0</b>
+      </div>
+
+    </div>
+
+
+    <!-- ==========================
+         REGISTRATION TABLE
+    =========================== -->
+
+    <section class="card">
+
+      <div class="toolbar">
+
+        <input
+          id="search"
+          placeholder="ស្វែងរក ឈ្មោះ / លេខ / សាលា"
+        >
+
+        <select id="filterStatus">
+
+          <option value="">
+            គ្រប់ស្ថានភាព
+          </option>
+
+          <option value="pending">
+            Pending
+          </option>
+
+          <option value="approved">
+            Approved
+          </option>
+
+          <option value="rejected">
+            Rejected
+          </option>
+
+        </select>
+
+        <button id="refreshBtn">
+          Refresh
+        </button>
+
+        <button id="exportBtn">
+          Export CSV
+        </button>
+
+      </div>
+
+
+      <div class="tableWrap">
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th>លេខ</th>
+
+              <th>ឈ្មោះខ្មែរ</th>
+
+              <!-- NEW -->
+              <th>ឈ្មោះឡាតាំង</th>
+
+              <th>ភេទ</th>
+
+              <th>ថ្នាក់</th>
+
+              <th>សាលា</th>
+
+              <th>ខេត្ត</th>
+
+              <th>Payment</th>
+
+              <th>Status</th>
+
+              <th>កាលបរិច្ឆេទ</th>
+
+              <th>Action</th>
+
+            </tr>
+
+          </thead>
+
+          <tbody id="tbody"></tbody>
+
+        </table>
+
+      </div>
+
     </section>
+
   </section>
+
 </div>
-<div id="modal" class="modal hidden"><div class="modalBox"><button class="close" id="closeModal">×</button><div id="modalContent"></div></div></div>
+
+
+<!-- ==========================
+     RECEIPT MODAL
+=========================== -->
+
+<div id="modal" class="modal hidden">
+
+  <div class="modalBox">
+
+    <button
+      class="close"
+      id="closeModal">
+      ×
+    </button>
+
+    <div id="modalContent"></div>
+
+  </div>
+
+</div>
+
+
+<!-- ==========================
+     SUPABASE
+=========================== -->
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js"></script><script src="admin.js"></script>
-</body></html>
+
+<script src="config.js"></script>
+
+<script src="admin.js"></script>
+
+</body>
+
+</html>
