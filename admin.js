@@ -1,220 +1,439 @@
-<!doctype html>
-<html lang="km">
+const { createClient } = supabase;
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+const supabaseClient = createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
 
-  <title>Admin Dashboard Registration</title>
+let allRows = [];
 
-  <link rel="stylesheet" href="style.css">
-</head>
+const $ = id => document.getElementById(id);
 
-<body>
+function err(msg) {
+  $("loginError").textContent = msg;
+  $("loginError").classList.remove("hidden");
+}
 
-<div class="container">
+async function init() {
+  const {
+    data: { session }
+  } = await supabaseClient.auth.getSession();
 
-  <!-- ==========================
-       LOGIN
-  =========================== -->
+  if (session) showDashboard(session.user);
+}
 
-  <section id="loginCard" class="card login">
+function showDashboard(user) {
+  $("loginCard").classList.add("hidden");
+  $("dashboard").classList.remove("hidden");
+  $("userEmail").textContent = user.email || "";
+  loadRows();
+}
 
-    <h1>Admin Login</h1>
+$("loginBtn").onclick = async () => {
+  try {
+    const {
+      data,
+      error
+    } = await supabaseClient.auth.signInWithPassword({
+      email: $("email").value.trim(),
+      password: $("password").value
+    });
 
-    <div id="loginError" class="alert hidden"></div>
+    if (error) throw error;
 
-    <input
-      id="email"
-      type="email"
-      placeholder="Admin Email"
-    >
+    showDashboard(data.user);
 
-    <input
-      id="password"
-      type="password"
-      placeholder="Password"
-    >
+  } catch (e) {
+    err(e.message);
+  }
+};
 
-    <button id="loginBtn">
-      Login
-    </button>
+$("logoutBtn").onclick = async () => {
+  await supabaseClient.auth.signOut();
+  location.reload();
+};
 
-  </section>
+$("refreshBtn").onclick = loadRows;
 
+$("search").oninput = render;
 
-  <!-- ==========================
-       DASHBOARD
-  =========================== -->
+$("filterStatus").onchange = render;
 
-  <section id="dashboard" class="hidden">
 
-    <header class="top">
+// ==============================
+// LOAD REGISTRATIONS
+// ==============================
 
-      <div>
-        <h1>Admin Dashboard</h1>
-        <p id="userEmail"></p>
-      </div>
+async function loadRows() {
 
-      <button id="logoutBtn" class="danger">
-        Logout
-      </button>
+  const {
+    data,
+    error
+  } = await supabaseClient
+    .from("registrations")
+    .select("*")
+    .order("submitted_at", {
+      ascending: false
+    });
 
-    </header>
+  if (error) {
+    console.error(error);
+    return alert(error.message);
+  }
 
+  allRows = data || [];
 
-    <!-- ==========================
-         STATS
-    =========================== -->
+  updateStats();
 
-    <div class="stats">
+  render();
+}
 
-      <div class="stat">
-        <span>សរុប</span>
-        <b id="total">0</b>
-      </div>
 
-      <div class="stat">
-        <span>Pending</span>
-        <b id="pending">0</b>
-      </div>
+// ==============================
+// UPDATE STATS
+// ==============================
 
-      <div class="stat">
-        <span>Approved</span>
-        <b id="approved">0</b>
-      </div>
+function updateStats() {
 
-      <div class="stat">
-        <span>Rejected</span>
-        <b id="rejected">0</b>
-      </div>
+  $("total").textContent =
+    allRows.length;
 
-    </div>
+  $("pending").textContent =
+    allRows.filter(
+      x => x.registration_status === "pending"
+    ).length;
+
+  $("approved").textContent =
+    allRows.filter(
+      x => x.registration_status === "approved"
+    ).length;
+
+  $("rejected").textContent =
+    allRows.filter(
+      x => x.registration_status === "rejected"
+    ).length;
+}
+
+
+// ==============================
+// RENDER TABLE
+// ==============================
+
+function render() {
+
+  const q =
+    $("search").value
+      .toLowerCase()
+      .trim();
+
+  const f =
+    $("filterStatus").value;
+
+  const rows = allRows.filter(x => {
+
+    const searchText = [
+      x.registration_number,
+      x.full_name,
+
+      // NEW: LATIN NAME
+      x.latin_name,
+
+      x.school_name,
+      x.province
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    return (
+      (!f || x.registration_status === f) &&
+      (!q || searchText.includes(q))
+    );
+  });
+
+  $("tbody").innerHTML =
+    rows.map(x => `
+      <tr>
+
+        <td>
+          ${escapeHtml(x.registration_number)}
+        </td>
+
+        <td>
+          ${escapeHtml(x.full_name)}
+        </td>
+
+        <!-- NEW: LATIN NAME -->
+        <td>
+          ${escapeHtml(x.latin_name || "")}
+        </td>
+
+        <td>
+          ${escapeHtml(x.gender)}
+        </td>
+
+        <td>
+          ${escapeHtml(x.grade)}
+        </td>
+
+        <td>
+          ${escapeHtml(x.school_name)}
+        </td>
+
+        <td>
+          ${escapeHtml(x.province)}
+        </td>
+
+        <td>
+          <span class="badge ${x.payment_status}">
+            ${x.payment_status}
+          </span>
+        </td>
+
+        <td>
+          <span class="badge ${x.registration_status}">
+            ${x.registration_status}
+          </span>
+        </td>
+
+        <td>
+          ${new Date(x.submitted_at).toLocaleString("km-KH")}
+        </td>
+
+        <td>
+
+          <button
+            class="action view"
+            onclick="viewReceipt('${x.id}')">
+            មើល
+          </button>
+
+          <button
+            class="action approve"
+            onclick="setStatus('${x.id}','approved')">
+            Approve
+          </button>
+
+          <button
+            class="action reject"
+            onclick="setStatus('${x.id}','rejected')">
+            Reject
+          </button>
+
+        </td>
+
+      </tr>
+    `).join("");
+}
+
+
+// ==============================
+// ESCAPE HTML
+// ==============================
+
+function escapeHtml(v = "") {
+
+  return String(v).replace(
+    /[&<>"']/g,
+    m => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;"
+    }[m])
+  );
+}
+
+
+// ==============================
+// APPROVE / REJECT
+// ==============================
+
+window.setStatus = async (id, status) => {
+
+  const row =
+    allRows.find(x => x.id === id);
+
+  if (!row) return;
+
+  const {
+    error
+  } = await supabaseClient
+    .from("registrations")
+    .update({
+      registration_status: status,
+
+      payment_status:
+        status === "approved"
+          ? "approved"
+          : status === "rejected"
+            ? "rejected"
+            : row.payment_status
+    })
+    .eq("id", id);
+
+  if (error) {
+    return alert(error.message);
+  }
+
+  await loadRows();
+};
+
+
+// ==============================
+// VIEW RECEIPT
+// ==============================
+
+window.viewReceipt = async (id) => {
+
+  const row =
+    allRows.find(x => x.id === id);
+
+  if (!row) return;
 
+  const {
+    data,
+    error
+  } = await supabaseClient.storage
+    .from("receipts")
+    .createSignedUrl(
+      row.receipt_path,
+      600
+    );
 
-    <!-- ==========================
-         REGISTRATION TABLE
-    =========================== -->
+  if (error) {
+    return alert(error.message);
+  }
+
+  const isPdf =
+    row.receipt_path
+      .toLowerCase()
+      .endsWith(".pdf");
 
-    <section class="card">
+  $("modalContent").innerHTML = `
+
+    <h2>
+      ${escapeHtml(row.full_name)}
+    </h2>
+
+    <!-- NEW: LATIN NAME -->
+    <p>
+      ឈ្មោះឡាតាំង:
+      ${escapeHtml(row.latin_name || "")}
+    </p>
+
+    <p>
+      លេខ:
+      ${escapeHtml(row.registration_number)}
+    </p>
 
-      <div class="toolbar">
+    <p>
+      សាលា:
+      ${escapeHtml(row.school_name)}
+    </p>
 
-        <input
-          id="search"
-          placeholder="ស្វែងរក ឈ្មោះ / លេខ / សាលា"
-        >
+    ${
+      isPdf
+        ? `
+          <p>
+            <a
+              href="${data.signedUrl}"
+              target="_blank">
+              បើក PDF វិក្កយបត្រ
+            </a>
+          </p>
+        `
+        : `
+          <img
+            class="receipt"
+            src="${data.signedUrl}"
+            alt="Receipt">
+        `
+    }
 
-        <select id="filterStatus">
+  `;
 
-          <option value="">
-            គ្រប់ស្ថានភាព
-          </option>
+  $("modal").classList.remove("hidden");
+};
 
-          <option value="pending">
-            Pending
-          </option>
 
-          <option value="approved">
-            Approved
-          </option>
+// ==============================
+// CLOSE MODAL
+// ==============================
 
-          <option value="rejected">
-            Rejected
-          </option>
+$("closeModal").onclick =
+  () => $("modal").classList.add("hidden");
 
-        </select>
 
-        <button id="refreshBtn">
-          Refresh
-        </button>
+// ==============================
+// EXPORT CSV
+// ==============================
 
-        <button id="exportBtn">
-          Export CSV
-        </button>
+$("exportBtn").onclick = () => {
 
-      </div>
+  const headers = [
+    "registration_number",
 
+    "full_name",
 
-      <div class="tableWrap">
+    // NEW: LATIN NAME
+    "latin_name",
 
-        <table>
+    "gender",
 
-          <thead>
+    "grade",
 
-            <tr>
+    "school_name",
 
-              <th>លេខ</th>
+    "province",
 
-              <th>ឈ្មោះខ្មែរ</th>
+    "payment_status",
 
-              <!-- NEW -->
-              <th>ឈ្មោះឡាតាំង</th>
+    "registration_status",
 
-              <th>ភេទ</th>
+    "submitted_at"
+  ];
 
-              <th>ថ្នាក់</th>
+  const csv = [
+    headers.join(","),
 
-              <th>សាលា</th>
+    ...allRows.map(r =>
+      headers
+        .map(h =>
+          `"${String(
+            r[h] ?? ""
+          ).replaceAll('"', '""')}"`
+        )
+        .join(",")
+    )
 
-              <th>ខេត្ត</th>
+  ].join("\n");
 
-              <th>Payment</th>
+  const blob =
+    new Blob(
+      ["\ufeff" + csv],
+      {
+        type: "text/csv;charset=utf-8"
+      }
+    );
 
-              <th>Status</th>
+  const a =
+    document.createElement("a");
 
-              <th>កាលបរិច្ឆេទ</th>
+  a.href =
+    URL.createObjectURL(blob);
 
-              <th>Action</th>
+  a.download =
+    "registrations.csv";
 
-            </tr>
+  a.click();
 
-          </thead>
+  URL.revokeObjectURL(a.href);
+};
 
-          <tbody id="tbody"></tbody>
 
-        </table>
+// ==============================
+// START
+// ==============================
 
-      </div>
-
-    </section>
-
-  </section>
-
-</div>
-
-
-<!-- ==========================
-     RECEIPT MODAL
-=========================== -->
-
-<div id="modal" class="modal hidden">
-
-  <div class="modalBox">
-
-    <button
-      class="close"
-      id="closeModal">
-      ×
-    </button>
-
-    <div id="modalContent"></div>
-
-  </div>
-
-</div>
-
-
-<!-- ==========================
-     SUPABASE
-=========================== -->
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<script src="config.js"></script>
-
-<script src="admin.js"></script>
-
-</body>
-
-</html>
+init();
