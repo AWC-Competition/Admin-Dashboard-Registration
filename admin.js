@@ -792,130 +792,61 @@ $("exportBtn").onclick =
 // EXPORT EXCEL
 // ==============================
 
-$("exportExcelBtn").onclick =
-  () => {
+$("exportExcelBtn").onclick = () => {
 
-    if (!allRows.length) {
+  if (!allRows.length) {
+    alert("មិនមានទិន្នន័យសម្រាប់ Export ទេ។");
+    return;
+  }
 
-      return alert(
-        "មិនមានទិន្នន័យសម្រាប់ Export ទេ។"
-      );
+  if (typeof XLSX === "undefined") {
+    alert("Excel library មិនបាន Load ទេ។ សូមពិនិត្យ Internet ឬ Script ក្នុង admin.html");
+    return;
+  }
 
-    }
+  const data = allRows.map(r => ({
+    "លេខចុះឈ្មោះ": r.registration_number || "",
+    "ឈ្មោះជាខ្មែរ": r.full_name || "",
+    "ឈ្មោះជាឡាតាំង": r.latin_name || "",
+    "ភេទ": r.gender || "",
+    "ថ្នាក់": r.grade || "",
+    "ឈ្មោះសាលា": r.school_name || "",
+    "រាជធានី/ខេត្ត": r.province || "",
+    "ការបង់ប្រាក់": r.payment_status || "",
+    "ស្ថានភាព": r.registration_status || "",
+    "កាលបរិច្ឆេទ": r.submitted_at
+      ? new Date(r.submitted_at).toLocaleString("km-KH")
+      : ""
+  }));
 
+  const worksheet = XLSX.utils.json_to_sheet(data);
 
-    const data =
-      allRows.map(r => ({
+  worksheet["!cols"] = [
+    { wch: 22 },
+    { wch: 25 },
+    { wch: 25 },
+    { wch: 12 },
+    { wch: 12 },
+    { wch: 30 },
+    { wch: 20 },
+    { wch: 18 },
+    { wch: 20 },
+    { wch: 25 }
+  ];
 
-        "លេខចុះឈ្មោះ":
-          r.registration_number || "",
+  const workbook = XLSX.utils.book_new();
 
-        "ឈ្មោះជាខ្មែរ":
-          r.full_name || "",
+  XLSX.utils.book_append_sheet(
+    workbook,
+    worksheet,
+    "Registrations"
+  );
 
-        "ឈ្មោះជាឡាតាំង":
-          r.latin_name || "",
-
-        "ភេទ":
-          r.gender || "",
-
-        "ថ្នាក់":
-          r.grade || "",
-
-        "ឈ្មោះសាលា":
-          r.school_name || "",
-
-        "រាជធានី/ខេត្ត":
-          r.province || "",
-
-        "ការបង់ប្រាក់":
-          r.payment_status || "",
-
-        "ស្ថានភាព":
-          r.registration_status || "",
-
-        "កាលបរិច្ឆេទ":
-          r.submitted_at
-            ? new Date(
-                r.submitted_at
-              ).toLocaleString(
-                "km-KH"
-              )
-            : ""
-
-      }));
-
-
-    const worksheet =
-      XLSX.utils.json_to_sheet(
-        data
-      );
-
-
-    // Column widths
-    worksheet["!cols"] = [
-
-      {
-        wch: 22
-      },
-
-      {
-        wch: 25
-      },
-
-      {
-        wch: 25
-      },
-
-      {
-        wch: 12
-      },
-
-      {
-        wch: 12
-      },
-
-      {
-        wch: 30
-      },
-
-      {
-        wch: 20
-      },
-
-      {
-        wch: 18
-      },
-
-      {
-        wch: 20
-      },
-
-      {
-        wch: 25
-      }
-
-    ];
-
-
-    const workbook =
-      XLSX.utils.book_new();
-
-
-    XLSX.utils.book_append_sheet(
-      workbook,
-      worksheet,
-      "Registrations"
-    );
-
-
-    XLSX.writeFile(
-      workbook,
-      "registrations.xlsx"
-    );
-
-  };
-
+  XLSX.writeFile(
+    workbook,
+    "registrations.xlsx"
+  );
+};
 
 // ==============================
 // START
